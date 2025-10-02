@@ -1,0 +1,7 @@
+project_id = "mixzjmmrzbdapxvuhbsg"
+
+[functions.translate-sanskrit]
+verify_jwt = false
+
+[functions.ayurvedic-recommendations]
+verify_jwt = false
