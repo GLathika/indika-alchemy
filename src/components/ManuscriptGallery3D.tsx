@@ -2,6 +2,10 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls, PerspectiveCamera, useTexture } from "@react-three/drei";
 import { Suspense, useRef } from "react";
 import * as THREE from "three";
+import manuscript1 from "@/assets/manuscript-1.jpg";
+import manuscript2 from "@/assets/manuscript-2.jpg";
+import manuscript3 from "@/assets/manuscript-3.jpg";
+import manuscript4 from "@/assets/manuscript-4.jpg";
 
 interface Manuscript {
   id: string;
@@ -10,11 +14,18 @@ interface Manuscript {
   image_url: string | null;
 }
 
+const imageMap: Record<string, string> = {
+  '/src/assets/manuscript-1.jpg': manuscript1,
+  '/src/assets/manuscript-2.jpg': manuscript2,
+  '/src/assets/manuscript-3.jpg': manuscript3,
+  '/src/assets/manuscript-4.jpg': manuscript4,
+};
+
 function ManuscriptFrame({ manuscript, position }: { manuscript: Manuscript; position: [number, number, number] }) {
   const meshRef = useRef<THREE.Mesh>(null);
   
-  // Convert the path to actual import path
-  const imagePath = manuscript.image_url?.replace('/src/', '') || '';
+  // Get the imported image path
+  const imagePath = manuscript.image_url ? imageMap[manuscript.image_url] : '';
   const texture = useTexture(imagePath);
 
   return (
