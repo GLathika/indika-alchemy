@@ -1,7 +1,10 @@
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import architectureBg from "@/assets/architecture-bg.jpg";
-import { Building2, Leaf, Sun, Wind } from "lucide-react";
+import brihadeeswara from "@/assets/architecture-brihadeeswara.jpg";
+import konark from "@/assets/architecture-konark.jpg";
+import ajanta from "@/assets/architecture-ajanta.jpg";
+import { Building2, Leaf, Sun, Wind, Camera } from "lucide-react";
 
 export default function Architecture() {
   const architecturalFeatures = [
@@ -49,6 +52,33 @@ export default function Architecture() {
         "Jalousie windows for airflow control",
       ],
     },
+  ];
+
+  const architecturalMarvels = [
+    {
+      title: "Brihadeeswara Temple",
+      location: "Thanjavur, Tamil Nadu",
+      period: "1010 CE",
+      description: "A UNESCO World Heritage Site showcasing Chola architecture with its towering vimana reaching 216 feet.",
+      image: brihadeeswara,
+      features: ["Granite construction", "Shadow-less vimana", "Acoustic engineering", "Astronomical alignment"]
+    },
+    {
+      title: "Konark Sun Temple",
+      location: "Konark, Odisha", 
+      period: "13th Century CE",
+      description: "A masterpiece of Kalinga architecture designed as a chariot of the sun god with intricate stone carvings.",
+      image: konark,
+      features: ["Chariot design", "Sundial wheels", "Erotic sculptures", "Maritime influence"]
+    },
+    {
+      title: "Ajanta Caves",
+      location: "Maharashtra",
+      period: "2nd Century BCE - 480 CE", 
+      description: "Rock-cut Buddhist monasteries and prayer halls adorned with exquisite murals and sculptures.",
+      image: ajanta,
+      features: ["Rock-cut architecture", "Ancient murals", "Buddhist art", "Natural acoustics"]
+    }
   ];
 
   return (
@@ -99,6 +129,50 @@ export default function Architecture() {
                 </Card>
               );
             })}
+          </div>
+
+          {/* Architectural Marvels Gallery */}
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Camera className="h-6 w-6 text-primary" />
+              </div>
+              <h2 className="text-2xl font-bold">Architectural Marvels</h2>
+            </div>
+            
+            <div className="grid md:grid-cols-3 gap-6 mb-8">
+              {architecturalMarvels.map((marvel, index) => (
+                <Card key={index} className="overflow-hidden hover:shadow-elegant transition-all hover:-translate-y-1">
+                  <div className="aspect-video overflow-hidden">
+                    <img 
+                      src={marvel.image} 
+                      alt={marvel.title}
+                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                  <CardHeader>
+                    <CardTitle className="text-lg">{marvel.title}</CardTitle>
+                    <CardDescription>
+                      {marvel.location} • {marvel.period}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground mb-4">{marvel.description}</p>
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium">Key Features:</p>
+                      <div className="grid grid-cols-2 gap-1">
+                        {marvel.features.map((feature, idx) => (
+                          <div key={idx} className="flex items-center gap-1">
+                            <div className="h-1 w-1 rounded-full bg-primary" />
+                            <span className="text-xs text-muted-foreground">{feature}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
 
           <Card className="mt-8 bg-gradient-to-r from-primary/5 to-secondary/5">
