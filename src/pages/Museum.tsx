@@ -2,8 +2,41 @@ import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BookOpen, Scroll, Crown, Sparkles } from "lucide-react";
+import { ManuscriptGallery3D } from "@/components/ManuscriptGallery3D";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+
+interface Manuscript {
+  id: string;
+  title: string;
+  description: string | null;
+  image_url: string | null;
+}
 
 export default function Museum() {
+  const [manuscripts, setManuscripts] = useState<Manuscript[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchManuscripts();
+  }, []);
+
+  const fetchManuscripts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('manuscripts')
+        .select('id, title, description, image_url')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setManuscripts(data || []);
+    } catch (error) {
+      console.error('Error fetching manuscripts:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
   const exhibits = [
     {
       category: "Ancient Texts",
@@ -107,7 +140,7 @@ export default function Museum() {
     <div className="min-h-screen bg-background">
       <Navigation />
       <main className="container mx-auto px-4 pt-24 pb-12">
-        <div className="max-w-6xl mx-auto">
+          <div className="max-w-6xl mx-auto">
           <div className="rounded-xl p-8 mb-8 bg-gradient-to-r from-primary/10 to-secondary/10 shadow-elegant">
             <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               Virtual Cultural Museum
@@ -115,6 +148,28 @@ export default function Museum() {
             <p className="text-muted-foreground text-lg">
               Explore the rich heritage of ancient India through digital exhibits
             </p>
+          </div>
+
+          {/* 3D Manuscript Gallery */}
+          <div className="mb-12">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Scroll className="h-6 w-6 text-primary" />
+              </div>
+              <h2 className="text-2xl font-bold">3D Manuscript Gallery</h2>
+            </div>
+            <p className="text-muted-foreground mb-6">
+              Navigate through our 3D gallery of ancient manuscripts. Click and drag to rotate, scroll to zoom.
+            </p>
+            {loading ? (
+              <Skeleton className="w-full h-[600px] rounded-xl" />
+            ) : manuscripts.length > 0 ? (
+              <ManuscriptGallery3D manuscripts={manuscripts} />
+            ) : (
+              <Card className="p-12 text-center">
+                <p className="text-muted-foreground">No manuscripts available yet.</p>
+              </Card>
+            )}
           </div>
 
           <div className="space-y-8">
