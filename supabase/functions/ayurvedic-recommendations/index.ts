@@ -1,6 +1,14 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
+
+const ayurvedicSchema = z.object({
+  age: z.number().int().min(1, 'Age must be at least 1').max(150, 'Age must be less than 150'),
+  weight: z.number().positive('Weight must be positive').max(500, 'Weight must be less than 500kg').optional(),
+  symptoms: z.string().min(1, 'Symptoms are required').max(2000, 'Symptoms must be less than 2000 characters').trim(),
+  bodyType: z.enum(['Vata', 'Pitta', 'Kapha', 'Mixed']).optional()
+});
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,11 +21,19 @@ serve(async (req) => {
   }
 
   try {
-    const { age, weight, symptoms, bodyType } = await req.json();
+    const body = await req.json();
     
-    if (!age || !symptoms) {
-      throw new Error('Age and symptoms are required');
+    // Validate input with Zod
+    const validationResult = ayurvedicSchema.safeParse(body);
+    if (!validationResult.success) {
+      const errors = validationResult.error.errors.map(e => e.message).join(', ');
+      return new Response(
+        JSON.stringify({ error: `Validation failed: ${errors}` }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
+    
+    const { age, weight, symptoms, bodyType } = validationResult.data;
 
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!lovableApiKey) {
@@ -64,7 +80,7 @@ serve(async (req) => {
 
     if (!response.ok) {
       const error = await response.text();
-      console.error('AI API error:', error);
+      console.error('AI API error:', { status: response.status, statusText: response.statusText });
       throw new Error('Failed to generate recommendations');
     }
 
@@ -98,7 +114,12 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Error in ayurvedic-recommendations function:', error);
+    // Sanitized error logging
+    const errorInfo = error instanceof Error 
+      ? { name: error.name, message: error.message }
+      : { message: 'Unknown error' };
+    console.error('Error in ayurvedic-recommendations function:', errorInfo);
+    
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({ error: errorMessage }),

@@ -1,6 +1,11 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
+
+const translateSchema = z.object({
+  text: z.string().min(1, 'Sanskrit text is required').max(5000, 'Text must be less than 5000 characters').trim()
+});
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,11 +18,19 @@ serve(async (req) => {
   }
 
   try {
-    const { text } = await req.json();
+    const body = await req.json();
     
-    if (!text) {
-      throw new Error('Sanskrit text is required');
+    // Validate input with Zod
+    const validationResult = translateSchema.safeParse(body);
+    if (!validationResult.success) {
+      const errors = validationResult.error.errors.map(e => e.message).join(', ');
+      return new Response(
+        JSON.stringify({ error: `Validation failed: ${errors}` }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
+    
+    const { text } = validationResult.data;
 
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!lovableApiKey) {
@@ -49,7 +62,7 @@ serve(async (req) => {
 
     if (!response.ok) {
       const error = await response.text();
-      console.error('AI API error:', error);
+      console.error('AI API error:', { status: response.status, statusText: response.statusText });
       throw new Error('Failed to translate Sanskrit text');
     }
 
@@ -81,7 +94,12 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Error in translate-sanskrit function:', error);
+    // Sanitized error logging
+    const errorInfo = error instanceof Error 
+      ? { name: error.name, message: error.message }
+      : { message: 'Unknown error' };
+    console.error('Error in translate-sanskrit function:', errorInfo);
+    
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({ error: errorMessage }),

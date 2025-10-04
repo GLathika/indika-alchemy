@@ -22,6 +22,7 @@ export type Database = {
           id: string
           recommendations: string | null
           symptoms: string | null
+          updated_at: string | null
           user_id: string
           weight: number | null
         }
@@ -32,6 +33,7 @@ export type Database = {
           id?: string
           recommendations?: string | null
           symptoms?: string | null
+          updated_at?: string | null
           user_id: string
           weight?: number | null
         }
@@ -42,6 +44,7 @@ export type Database = {
           id?: string
           recommendations?: string | null
           symptoms?: string | null
+          updated_at?: string | null
           user_id?: string
           weight?: number | null
         }
@@ -54,6 +57,7 @@ export type Database = {
           enhanced_image_url: string | null
           id: string
           image_url: string | null
+          is_public: boolean
           title: string
           upload_date: string
           user_id: string
@@ -64,6 +68,7 @@ export type Database = {
           enhanced_image_url?: string | null
           id?: string
           image_url?: string | null
+          is_public?: boolean
           title: string
           upload_date?: string
           user_id: string
@@ -74,6 +79,7 @@ export type Database = {
           enhanced_image_url?: string | null
           id?: string
           image_url?: string | null
+          is_public?: boolean
           title?: string
           upload_date?: string
           user_id?: string
@@ -87,6 +93,7 @@ export type Database = {
           language: string | null
           original_text: string
           translated_text: string | null
+          updated_at: string | null
           user_id: string
         }
         Insert: {
@@ -95,6 +102,7 @@ export type Database = {
           language?: string | null
           original_text: string
           translated_text?: string | null
+          updated_at?: string | null
           user_id: string
         }
         Update: {
@@ -103,6 +111,7 @@ export type Database = {
           language?: string | null
           original_text?: string
           translated_text?: string | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
