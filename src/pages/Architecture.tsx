@@ -20,7 +20,7 @@ interface TempleResult {
   deity: string;
   features: string[];
   timings?: string;
-  imageDescription: string;
+  imageUrl?: string;
   error?: string;
 }
 
@@ -195,6 +195,15 @@ export default function Architecture() {
           {/* Search Results */}
           {searchResult && (
             <Card className="mb-8 overflow-hidden border-primary/20 shadow-elegant">
+              {searchResult.imageUrl && (
+                <div className="aspect-[21/9] overflow-hidden">
+                  <img 
+                    src={searchResult.imageUrl} 
+                    alt={searchResult.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
               <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10 p-6 border-b">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">

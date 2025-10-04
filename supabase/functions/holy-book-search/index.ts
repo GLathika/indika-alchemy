@@ -11,11 +11,11 @@ serve(async (req) => {
   }
 
   try {
-    const { templeName } = await req.json();
+    const { bookName } = await req.json();
     
-    if (!templeName || templeName.trim().length === 0) {
+    if (!bookName || bookName.trim().length === 0) {
       return new Response(
-        JSON.stringify({ error: "Temple name is required" }),
+        JSON.stringify({ error: "Book name is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -25,19 +25,21 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const systemPrompt = `You are a knowledgeable Indian architecture and temple history expert. When given a temple name, provide detailed information in JSON format with the following structure:
+    const systemPrompt = `You are an expert on ancient Indian holy texts and scriptures. When given a book name, provide comprehensive information in JSON format with the following structure:
 {
-  "name": "Full official name of the temple",
-  "location": "City, State",
-  "period": "Time period or year built",
-  "history": "2-3 paragraphs of detailed historical information about the temple's significance, construction, and cultural importance",
-  "architecture": "Description of architectural style and unique features",
-  "deity": "Main deity or religious significance",
-  "features": ["feature1", "feature2", "feature3", "feature4"],
-  "timings": "Temple visiting hours if known"
+  "title": "Full official name of the text",
+  "originalLanguage": "Original language (e.g., Sanskrit, Pali)",
+  "period": "Time period or approximate date",
+  "overview": "2-3 paragraphs describing the text's content, purpose, and historical context",
+  "keyTeachings": ["teaching1", "teaching2", "teaching3", "teaching4", "teaching5"],
+  "chapters": [
+    {"title": "Chapter name", "summary": "Brief summary of the chapter"},
+    {"title": "Chapter name", "summary": "Brief summary of the chapter"}
+  ],
+  "culturalSignificance": "1-2 paragraphs about the text's impact on Indian culture, philosophy, and spirituality"
 }
 
-If the temple doesn't exist or you're not sure, respond with: {"error": "Temple not found. Please check the name and try again."}`;
+Provide detailed, accurate information. If the book doesn't exist or you're not sure, respond with: {"error": "Holy book not found. Please check the name and try again."}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -49,7 +51,7 @@ If the temple doesn't exist or you're not sure, respond with: {"error": "Temple 
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `Provide detailed information about: ${templeName}` }
+          { role: "user", content: `Provide detailed information about: ${bookName}` }
         ],
       }),
     });
@@ -70,7 +72,7 @@ If the temple doesn't exist or you're not sure, respond with: {"error": "Temple 
       
       const errorText = await response.text();
       console.error("AI gateway error:", response.status, errorText);
-      throw new Error("Failed to get temple information");
+      throw new Error("Failed to get book information");
     }
 
     const data = await response.json();
@@ -81,53 +83,24 @@ If the temple doesn't exist or you're not sure, respond with: {"error": "Temple 
     }
 
     // Parse the JSON response
-    let templeInfo;
+    let bookInfo;
     try {
       // Extract JSON from markdown code blocks if present
       const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/) || content.match(/```\s*([\s\S]*?)\s*```/);
       const jsonString = jsonMatch ? jsonMatch[1] : content;
-      templeInfo = JSON.parse(jsonString.trim());
+      bookInfo = JSON.parse(jsonString.trim());
     } catch (parseError) {
       console.error("Failed to parse AI response:", content);
       throw new Error("Invalid response format from AI");
     }
 
-    // Generate temple image
-    console.log("Generating temple image...");
-    const imagePrompt = `A high-quality, realistic photograph of ${templeInfo.name}, showing its architectural beauty and grandeur. The image should capture the temple's main structure, intricate details, and surrounding environment. Ultra high resolution, professional photography.`;
-    
-    const imageResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image-preview",
-        messages: [
-          { role: "user", content: imagePrompt }
-        ],
-        modalities: ["image", "text"]
-      }),
-    });
-
-    if (!imageResponse.ok) {
-      console.error("Image generation failed:", imageResponse.status);
-      // Continue without image if generation fails
-      templeInfo.imageUrl = null;
-    } else {
-      const imageData = await imageResponse.json();
-      const generatedImageUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-      templeInfo.imageUrl = generatedImageUrl || null;
-    }
-
     return new Response(
-      JSON.stringify(templeInfo),
+      JSON.stringify(bookInfo),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 
   } catch (error) {
-    console.error("Temple search error:", error);
+    console.error("Holy book search error:", error);
     return new Response(
       JSON.stringify({ 
         error: error instanceof Error ? error.message : "An unexpected error occurred" 

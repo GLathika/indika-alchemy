@@ -2,3 +2,6 @@ project_id = "mixzjmmrzbdapxvuhbsg"
 
 [functions.temple-search]
 verify_jwt = false
+
+[functions.holy-book-search]
+verify_jwt = false

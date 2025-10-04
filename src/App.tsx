@@ -11,6 +11,7 @@ import Sanskrit from "./pages/Sanskrit";
 import Ayurveda from "./pages/Ayurveda";
 import Architecture from "./pages/Architecture";
 import Museum from "./pages/Museum";
+import Manuscripts from "./pages/Manuscripts";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -90,6 +91,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <Museum />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/manuscripts"
+            element={
+              <ProtectedRoute>
+                <Manuscripts />
               </ProtectedRoute>
             }
           />

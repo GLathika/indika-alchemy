@@ -20,6 +20,7 @@ export const Navigation = () => {
     { path: "/sanskrit", label: "Sanskrit", icon: BookOpen },
     { path: "/ayurveda", label: "Ayurveda", icon: Flower2 },
     { path: "/architecture", label: "Architecture", icon: Building2 },
+    { path: "/manuscripts", label: "Manuscripts", icon: BookOpen },
     { path: "/museum", label: "Museum", icon: Library },
   ];
 
