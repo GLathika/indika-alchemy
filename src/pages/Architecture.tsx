@@ -1,12 +1,77 @@
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import architectureBg from "@/assets/architecture-bg.jpg";
 import brihadeeswara from "@/assets/architecture-brihadeeswara.jpg";
 import konark from "@/assets/architecture-konark.jpg";
 import ajanta from "@/assets/architecture-ajanta.jpg";
-import { Building2, Leaf, Sun, Wind, Camera } from "lucide-react";
+import { Building2, Leaf, Sun, Wind, Camera, Search, Loader2, MapPin, Calendar, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+interface TempleResult {
+  name: string;
+  location: string;
+  period: string;
+  history: string;
+  architecture: string;
+  deity: string;
+  features: string[];
+  timings?: string;
+  imageDescription: string;
+  error?: string;
+}
 
 export default function Architecture() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResult, setSearchResult] = useState<TempleResult | null>(null);
+  const { toast } = useToast();
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!searchQuery.trim()) {
+      toast({
+        title: "Please enter a temple name",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSearching(true);
+    setSearchResult(null);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("temple-search", {
+        body: { templeName: searchQuery }
+      });
+
+      if (error) throw error;
+
+      if (data.error) {
+        toast({
+          title: "Temple not found",
+          description: data.error,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setSearchResult(data);
+    } catch (error) {
+      console.error("Search error:", error);
+      toast({
+        title: "Search failed",
+        description: "Unable to search for temple. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSearching(false);
+    }
+  };
   const architecturalFeatures = [
     {
       title: "Vastu Shastra Principles",
@@ -97,10 +162,106 @@ export default function Architecture() {
             <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               Traditional Architecture Insights
             </h1>
-            <p className="text-muted-foreground text-lg">
+            <p className="text-muted-foreground text-lg mb-6">
               Discover ancient Indian architectural wisdom and its modern applications
             </p>
+            
+            {/* Search Bar */}
+            <form onSubmit={handleSearch} className="flex gap-3 max-w-2xl">
+              <Input
+                type="text"
+                placeholder="Search for any temple across India..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 bg-background/80 backdrop-blur-sm"
+                disabled={isSearching}
+              />
+              <Button type="submit" disabled={isSearching} className="gap-2">
+                {isSearching ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Searching
+                  </>
+                ) : (
+                  <>
+                    <Search className="h-4 w-4" />
+                    Search
+                  </>
+                )}
+              </Button>
+            </form>
           </div>
+
+          {/* Search Results */}
+          {searchResult && (
+            <Card className="mb-8 overflow-hidden border-primary/20 shadow-elegant">
+              <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10 p-6 border-b">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Sparkles className="h-5 w-5 text-primary" />
+                      <h2 className="text-2xl font-bold text-primary">{searchResult.name}</h2>
+                    </div>
+                    <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <MapPin className="h-4 w-4" />
+                        {searchResult.location}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-4 w-4" />
+                        {searchResult.period}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <CardContent className="p-6 space-y-6">
+                {searchResult.deity && (
+                  <div>
+                    <h3 className="font-semibold text-lg mb-2 flex items-center gap-2">
+                      <Building2 className="h-5 w-5 text-primary" />
+                      Main Deity
+                    </h3>
+                    <p className="text-muted-foreground">{searchResult.deity}</p>
+                  </div>
+                )}
+
+                <div>
+                  <h3 className="font-semibold text-lg mb-2">Historical Significance</h3>
+                  <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
+                    {searchResult.history}
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold text-lg mb-2">Architectural Style</h3>
+                  <p className="text-muted-foreground leading-relaxed">
+                    {searchResult.architecture}
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold text-lg mb-3">Key Features</h3>
+                  <div className="grid md:grid-cols-2 gap-3">
+                    {searchResult.features.map((feature, idx) => (
+                      <div key={idx} className="flex items-start gap-2 p-3 rounded-lg bg-primary/5">
+                        <div className="h-1.5 w-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+                        <span className="text-sm text-muted-foreground">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {searchResult.timings && (
+                  <div className="p-4 rounded-lg bg-secondary/10 border border-secondary/20">
+                    <h3 className="font-semibold mb-1">Visiting Hours</h3>
+                    <p className="text-sm text-muted-foreground">{searchResult.timings}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           <div className="grid md:grid-cols-2 gap-6">
             {architecturalFeatures.map((feature, index) => {

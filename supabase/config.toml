@@ -1,1 +1,4 @@
 project_id = "mixzjmmrzbdapxvuhbsg"
+
+[functions.temple-search]
+verify_jwt = false
