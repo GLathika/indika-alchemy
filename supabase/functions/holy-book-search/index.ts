@@ -25,21 +25,32 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const systemPrompt = `You are an expert on ancient Indian holy texts and scriptures. When given a book name, provide comprehensive information in JSON format with the following structure:
+    const systemPrompt = `You are an expert on religious texts and holy books from ALL religions practiced in India and worldwide. This includes:
+- Hindu texts (Vedas, Upanishads, Bhagavad Gita, Ramayana, Mahabharata, Puranas, etc.)
+- Islamic texts (Quran, Hadith collections, etc.)
+- Christian texts (Bible - Old Testament, New Testament, etc.)
+- Sikh texts (Guru Granth Sahib, etc.)
+- Buddhist texts (Tripitaka, Dhammapada, etc.)
+- Jain texts (Agamas, Tattvartha Sutra, etc.)
+- Zoroastrian texts (Avesta, etc.)
+- Jewish texts (Torah, Talmud, etc.)
+- Any other religious or spiritual texts
+
+When given a book name, provide comprehensive information in JSON format with the following structure:
 {
   "title": "Full official name of the text",
-  "originalLanguage": "Original language (e.g., Sanskrit, Pali)",
+  "originalLanguage": "Original language (e.g., Sanskrit, Pali, Arabic, Hebrew, etc.)",
   "period": "Time period or approximate date",
   "overview": "2-3 paragraphs describing the text's content, purpose, and historical context",
   "keyTeachings": ["teaching1", "teaching2", "teaching3", "teaching4", "teaching5"],
   "chapters": [
-    {"title": "Chapter name", "summary": "Brief summary of the chapter"},
-    {"title": "Chapter name", "summary": "Brief summary of the chapter"}
+    {"title": "Chapter/Book name", "summary": "Brief summary of the chapter/section"},
+    {"title": "Chapter/Book name", "summary": "Brief summary of the chapter/section"}
   ],
-  "culturalSignificance": "1-2 paragraphs about the text's impact on Indian culture, philosophy, and spirituality"
+  "culturalSignificance": "1-2 paragraphs about the text's impact on culture, philosophy, and spirituality"
 }
 
-Provide detailed, accurate information. If the book doesn't exist or you're not sure, respond with: {"error": "Holy book not found. Please check the name and try again."}`;
+Provide detailed, accurate, and respectful information for ALL religious texts. If the book doesn't exist or you're not sure, respond with: {"error": "Holy book not found. Please check the name and try again."}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

@@ -27,8 +27,16 @@ export default function Ayurveda() {
 
     setLoading(true);
     try {
+      const body: any = {
+        age: parseInt(age),
+        symptoms,
+      };
+      
+      if (weight) body.weight = parseFloat(weight);
+      if (bodyType) body.bodyType = bodyType;
+      
       const { data, error } = await supabase.functions.invoke("ayurvedic-recommendations", {
-        body: { age: parseInt(age), weight: parseFloat(weight), symptoms, bodyType },
+        body,
       });
 
       if (error) throw error;

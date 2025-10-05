@@ -1,312 +1,186 @@
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { BookOpen, Scroll, Crown, Sparkles } from "lucide-react";
-import { ManuscriptGallery3D } from "@/components/ManuscriptGallery3D";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Search, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useState } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import manuscript1 from "@/assets/manuscript-1.jpg";
-import manuscript2 from "@/assets/manuscript-2.jpg";
-import manuscript3 from "@/assets/manuscript-3.jpg";
-import manuscript4 from "@/assets/manuscript-4.jpg";
-import scienceAncient from "@/assets/science-ancient.jpg";
-import architectureBrihadeeswara from "@/assets/architecture-brihadeeswara.jpg";
-import architectureKonark from "@/assets/architecture-konark.jpg";
-import architectureAjanta from "@/assets/architecture-ajanta.jpg";
+import { useState } from "react";
+import { toast } from "sonner";
 
-interface Manuscript {
-  id: string;
-  title: string;
-  description: string | null;
-  image_url: string | null;
-}
-
-interface ExhibitItem {
-  title: string;
+interface MuseumSearchResult {
+  name: string;
+  location: string;
   period: string;
-  description: string;
-  significance: string;
-  image: string;
+  history: string;
+  architecture: string;
+  deity?: string;
+  religion: string;
+  culturalSignificance: string;
+  imageData?: string;
 }
 
 export default function Museum() {
-  const [manuscripts, setManuscripts] = useState<Manuscript[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResult, setSearchResult] = useState<MuseumSearchResult | null>(null);
 
-  useEffect(() => {
-    fetchManuscripts();
-  }, []);
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!searchQuery.trim()) {
+      toast.error("Please enter a search term");
+      return;
+    }
 
-  const fetchManuscripts = async () => {
+    setIsSearching(true);
+    setSearchResult(null);
+
     try {
-      const { data, error } = await supabase
-        .from('manuscripts')
-        .select('id, title, description, image_url')
-        .order('created_at', { ascending: false });
+      const { data, error } = await supabase.functions.invoke("museum-search", {
+        body: { query: searchQuery }
+      });
 
       if (error) throw error;
-      setManuscripts(data || []);
+
+      if (data.error) {
+        toast.error(data.error);
+        return;
+      }
+
+      setSearchResult(data);
+      toast.success("Item found!");
     } catch (error) {
-      console.error('Error fetching manuscripts:', error);
+      console.error("Search error:", error);
+      toast.error("Search failed. Please try again.");
     } finally {
-      setLoading(false);
+      setIsSearching(false);
     }
   };
-
-  // Default museum data with images
-  const defaultManuscripts: Manuscript[] = [
-    {
-      id: '1',
-      title: 'Rigveda Palm Leaf Manuscript',
-      description: 'Ancient palm leaf manuscript containing hymns from the Rigveda, one of the oldest known Vedic Sanskrit texts dating back to 1500 BCE',
-      image_url: '/src/assets/manuscript-1.jpg'
-    },
-    {
-      id: '2',
-      title: 'Charaka Samhita on Birch Bark',
-      description: 'Birch bark manuscript from the foundational text of Ayurvedic medicine, containing detailed medical knowledge and surgical techniques',
-      image_url: '/src/assets/manuscript-2.jpg'
-    },
-    {
-      id: '3',
-      title: 'Ayurvedic Herbal Encyclopedia',
-      description: 'Illustrated manuscript documenting various medicinal plants, herbs, and their therapeutic properties used in traditional Ayurvedic medicine',
-      image_url: '/src/assets/manuscript-3.jpg'
-    },
-    {
-      id: '4',
-      title: 'Aryabhata Astronomical Treatise',
-      description: 'Ancient astronomical manuscript containing mathematical calculations, planetary positions, and celestial observations by mathematician Aryabhata',
-      image_url: '/src/assets/manuscript-4.jpg'
-    }
-  ];
-
-  const displayManuscripts = manuscripts.length > 0 ? manuscripts : defaultManuscripts;
-
-  const exhibits = [
-    {
-      category: "Ancient Texts",
-      icon: BookOpen,
-      image: manuscript1,
-      items: [
-        {
-          title: "Rigveda",
-          period: "1500-1200 BCE",
-          description: "Oldest of the four Vedas, collection of 1,028 hymns to Deities",
-          significance: "Foundation of Hindu philosophy and Sanskrit literature",
-          image: manuscript1,
-        },
-        {
-          title: "Arthashastra",
-          period: "4th Century BCE",
-          description: "Ancient treatise on statecraft, economics, and military strategy",
-          significance: "One of the earliest works on political economy",
-          image: manuscript2,
-        },
-        {
-          title: "Charaka Samhita",
-          period: "2nd Century BCE",
-          description: "Foundational text of Ayurvedic medicine",
-          significance: "Comprehensive medical encyclopedia with surgical techniques",
-          image: manuscript3,
-        },
-      ],
-    },
-    {
-      category: "Architectural Marvels",
-      icon: Crown,
-      image: architectureBrihadeeswara,
-      items: [
-        {
-          title: "Brihadeeswara Temple",
-          period: "1010 CE",
-          description: "UNESCO World Heritage Site in Tamil Nadu",
-          significance: "Engineering marvel with 216-foot granite tower",
-          image: architectureBrihadeeswara,
-        },
-        {
-          title: "Konark Sun Temple",
-          period: "13th Century CE",
-          description: "Chariot-shaped temple dedicated to the sun god Surya",
-          significance: "Exemplifies Kalinga architecture and astronomical precision",
-          image: architectureKonark,
-        },
-        {
-          title: "Ajanta Caves",
-          period: "2nd Century BCE - 480 CE",
-          description: "Rock-cut Buddhist cave monuments",
-          significance: "Masterpieces of religious art and ancient painting",
-          image: architectureAjanta,
-        },
-      ],
-    },
-    {
-      category: "Scientific Achievements",
-      icon: Sparkles,
-      image: scienceAncient,
-      items: [
-        {
-          title: "Zero Concept",
-          period: "5th Century CE",
-          description: "Invention of zero as a number by Aryabhata",
-          significance: "Revolutionary contribution to mathematics",
-          image: scienceAncient,
-        },
-        {
-          title: "Plastic Surgery",
-          period: "6th Century BCE",
-          description: "Sushruta Samhita describes rhinoplasty and other procedures",
-          significance: "Pioneer of surgical techniques still used today",
-          image: scienceAncient,
-        },
-        {
-          title: "Astronomy",
-          period: "5th Century CE",
-          description: "Aryabhata's calculations of π and Earth's circumference",
-          significance: "Accurate astronomical observations without modern tools",
-          image: scienceAncient,
-        },
-      ],
-    },
-    {
-      category: "Manuscripts",
-      icon: Scroll,
-      image: manuscript4,
-      items: [
-        {
-          title: "Palm Leaf Manuscripts",
-          period: "Various periods",
-          description: "Ancient texts written on dried palm leaves",
-          significance: "Preservation of knowledge across millennia",
-          image: manuscript1,
-        },
-        {
-          title: "Bhojpatra Manuscripts",
-          period: "Ancient to Medieval",
-          description: "Texts written on birch bark",
-          significance: "Durable medium used in Himalayan regions",
-          image: manuscript2,
-        },
-        {
-          title: "Illustrated Manuscripts",
-          period: "Medieval period",
-          description: "Beautifully illuminated religious and literary texts",
-          significance: "Blend of art and scholarship",
-          image: manuscript3,
-        },
-      ],
-    },
-  ];
 
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
       <main className="container mx-auto px-4 pt-24 pb-12">
         <div className="max-w-6xl mx-auto">
-          <div className="rounded-xl p-8 mb-8 bg-gradient-to-r from-primary/10 to-secondary/10 shadow-elegant">
+          <div className="rounded-xl p-8 mb-8 shadow-elegant bg-gradient-to-br from-primary/5 via-secondary/5 to-primary/5">
             <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               Virtual Cultural Museum
             </h1>
-            <p className="text-muted-foreground text-lg">
-              Explore the rich heritage of ancient India through digital exhibits
+            <p className="text-muted-foreground text-lg mb-6">
+              Search for temples, monuments, and architectural wonders from all religions across India
             </p>
+            
+            {/* Search Bar */}
+            <form onSubmit={handleSearch} className="flex gap-3 max-w-2xl">
+              <Input
+                type="text"
+                placeholder="Search for temples, mosques, churches, monuments (e.g., Taj Mahal, Golden Temple, Ajanta Caves)..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 bg-background/80 backdrop-blur-sm"
+                disabled={isSearching}
+              />
+              <Button type="submit" disabled={isSearching} className="gap-2">
+                {isSearching ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Searching
+                  </>
+                ) : (
+                  <>
+                    <Search className="h-4 w-4" />
+                    Search
+                  </>
+                )}
+              </Button>
+            </form>
           </div>
 
-          {/* 3D Manuscript Gallery */}
-          <div className="mb-12">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <Scroll className="h-6 w-6 text-primary" />
+          {/* Search Results */}
+          {searchResult && (
+            <Card className="mb-8 overflow-hidden border-primary/20 shadow-elegant">
+              <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10 p-6 border-b">
+                <h2 className="text-3xl font-bold text-primary mb-2">{searchResult.name}</h2>
+                <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                  <div>Location: {searchResult.location}</div>
+                  <div>•</div>
+                  <div>Period: {searchResult.period}</div>
+                  <div>•</div>
+                  <div>Religion: {searchResult.religion}</div>
+                </div>
               </div>
-              <h2 className="text-2xl font-bold">3D Manuscript Gallery</h2>
-            </div>
-            <p className="text-muted-foreground mb-6">
-              Navigate through our 3D gallery of ancient manuscripts. Click and drag to rotate, scroll to zoom.
-            </p>
-            {loading ? (
-              <Skeleton className="w-full h-[600px] rounded-xl" />
-            ) : (
-              <ManuscriptGallery3D manuscripts={displayManuscripts} />
-            )}
-          </div>
 
-          <div className="space-y-8">
-            {exhibits.map((exhibit, categoryIndex) => {
-              const Icon = exhibit.icon;
-              return (
-                <div key={categoryIndex}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 rounded-lg bg-primary/10">
-                      <Icon className="h-6 w-6 text-primary" />
-                    </div>
-                    <h2 className="text-2xl font-bold">{exhibit.category}</h2>
+              <CardContent className="p-6">
+                {searchResult.imageData && (
+                  <div className="mb-6 rounded-xl overflow-hidden shadow-lg">
+                    <img 
+                      src={searchResult.imageData} 
+                      alt={searchResult.name}
+                      className="w-full h-auto"
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="font-semibold text-lg mb-2">History</h3>
+                    <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
+                      {searchResult.history}
+                    </p>
                   </div>
 
-                  <div className="grid md:grid-cols-3 gap-6">
-                    {exhibit.items.map((item: ExhibitItem, itemIndex) => (
-                      <Dialog key={itemIndex}>
-                        <DialogTrigger asChild>
-                          <Card className="hover:shadow-elegant transition-all hover:-translate-y-1 cursor-pointer">
-                            <div className="aspect-video overflow-hidden rounded-t-lg">
-                              <img 
-                                src={item.image} 
-                                alt={item.title}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                            <CardHeader>
-                              <div className="flex items-start justify-between mb-2">
-                                <CardTitle className="text-lg">{item.title}</CardTitle>
-                                <Badge variant="secondary">{item.period}</Badge>
-                              </div>
-                              <CardDescription>{item.description}</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                              <div className="p-3 bg-primary/5 rounded-lg">
-                                <p className="text-sm font-medium text-primary mb-1">Significance</p>
-                                <p className="text-sm text-muted-foreground">{item.significance}</p>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-4xl">
-                          <DialogHeader>
-                            <DialogTitle className="text-2xl">{item.title}</DialogTitle>
-                            <DialogDescription className="text-lg">{item.period}</DialogDescription>
-                          </DialogHeader>
-                          <div className="grid md:grid-cols-2 gap-6 mt-4">
-                            <div className="aspect-video overflow-hidden rounded-lg">
-                              <img 
-                                src={item.image} 
-                                alt={item.title}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                            <div className="space-y-4">
-                              <div>
-                                <h3 className="font-semibold mb-2">Description</h3>
-                                <p className="text-muted-foreground">{item.description}</p>
-                              </div>
-                              <div>
-                                <h3 className="font-semibold mb-2">Historical Significance</h3>
-                                <p className="text-muted-foreground">{item.significance}</p>
-                              </div>
-                              <div className="p-4 bg-primary/5 rounded-lg">
-                                <h3 className="font-semibold mb-2 text-primary">Period</h3>
-                                <p className="text-sm">{item.period}</p>
-                              </div>
-                            </div>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                    ))}
+                  <div>
+                    <h3 className="font-semibold text-lg mb-2">Architecture</h3>
+                    <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
+                      {searchResult.architecture}
+                    </p>
+                  </div>
+
+                  {searchResult.deity && (
+                    <div>
+                      <h3 className="font-semibold text-lg mb-2">Deity/Dedication</h3>
+                      <p className="text-muted-foreground leading-relaxed">
+                        {searchResult.deity}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="p-4 rounded-lg bg-secondary/10 border border-secondary/20">
+                    <h3 className="font-semibold mb-2">Cultural Significance</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+                      {searchResult.culturalSignificance}
+                    </p>
                   </div>
                 </div>
-              );
-            })}
-          </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Info Card */}
+          {!searchResult && (
+            <Card className="bg-gradient-to-br from-primary/5 to-secondary/5">
+              <CardHeader>
+                <CardTitle>Discover India's Rich Heritage</CardTitle>
+                <CardDescription>
+                  Search for any temple, mosque, church, gurdwara, monastery, or monument from across India
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  Our AI-powered museum can provide detailed information about:
+                </p>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li>• Hindu temples (Meenakshi, Kashi Vishwanath, Brihadeeswara, etc.)</li>
+                  <li>• Mosques (Jama Masjid, Mecca Masjid, Adhai Din Ka Jhonpra, etc.)</li>
+                  <li>• Churches (Basilica of Bom Jesus, St. Thomas Cathedral, etc.)</li>
+                  <li>• Sikh Gurdwaras (Golden Temple, Bangla Sahib, etc.)</li>
+                  <li>• Buddhist monasteries (Hemis, Thiksey, Ajanta Caves, etc.)</li>
+                  <li>• Jain temples (Dilwara, Ranakpur, Palitana, etc.)</li>
+                  <li>• Historical monuments (Taj Mahal, Qutub Minar, Red Fort, etc.)</li>
+                </ul>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </main>
     </div>

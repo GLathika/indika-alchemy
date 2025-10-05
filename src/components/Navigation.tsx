@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Flower2, Building2, Library, LogOut } from "lucide-react";
+import { BookOpen, Flower2, Building2, Library, LogOut, Calendar, ScrollText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -18,10 +18,11 @@ export const Navigation = () => {
   const navItems = [
     { path: "/", label: "Home", icon: Library },
     { path: "/sanskrit", label: "Sanskrit", icon: BookOpen },
+    { path: "/manuscripts", label: "Manuscripts", icon: ScrollText },
     { path: "/ayurveda", label: "Ayurveda", icon: Flower2 },
     { path: "/architecture", label: "Architecture", icon: Building2 },
-    { path: "/manuscripts", label: "Manuscripts", icon: BookOpen },
     { path: "/museum", label: "Museum", icon: Library },
+    { path: "/festivals", label: "Festivals", icon: Calendar },
   ];
 
   return (

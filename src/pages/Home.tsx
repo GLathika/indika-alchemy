@@ -2,7 +2,7 @@ import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { BookOpen, Flower2, Building2, Library, Sparkles } from "lucide-react";
+import { BookOpen, Flower2, Building2, Library, Sparkles, ScrollText } from "lucide-react";
 import heroBanner from "@/assets/hero-banner.jpg";
 
 export default function Home() {
@@ -15,6 +15,13 @@ export default function Home() {
       icon: BookOpen,
       path: "/sanskrit",
       gradient: "from-amber-500 to-orange-500",
+    },
+    {
+      title: "Holy Manuscripts",
+      description: "Search and download information about religious texts from all faiths",
+      icon: ScrollText,
+      path: "/manuscripts",
+      gradient: "from-rose-500 to-pink-500",
     },
     {
       title: "Ayurvedic Wellness",

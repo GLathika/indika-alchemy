@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.holy-book-search]
 verify_jwt = false
+
+[functions.museum-search]
+verify_jwt = false
+
+[functions.festival-search]
+verify_jwt = false

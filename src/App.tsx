@@ -12,6 +12,7 @@ import Ayurveda from "./pages/Ayurveda";
 import Architecture from "./pages/Architecture";
 import Museum from "./pages/Museum";
 import Manuscripts from "./pages/Manuscripts";
+import Festivals from "./pages/Festivals";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -99,6 +100,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <Manuscripts />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/festivals"
+            element={
+              <ProtectedRoute>
+                <Festivals />
               </ProtectedRoute>
             }
           />
