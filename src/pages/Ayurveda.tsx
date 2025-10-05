@@ -105,10 +105,10 @@ export default function Ayurveda() {
                       <SelectValue placeholder="Select your dosha" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="vata">Vata (Air & Space)</SelectItem>
-                      <SelectItem value="pitta">Pitta (Fire & Water)</SelectItem>
-                      <SelectItem value="kapha">Kapha (Earth & Water)</SelectItem>
-                      <SelectItem value="unknown">Not sure</SelectItem>
+                      <SelectItem value="Vata">Vata (Air & Space)</SelectItem>
+                      <SelectItem value="Pitta">Pitta (Fire & Water)</SelectItem>
+                      <SelectItem value="Kapha">Kapha (Earth & Water)</SelectItem>
+                      <SelectItem value="Mixed">Not sure / Mixed</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

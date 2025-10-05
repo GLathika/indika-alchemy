@@ -6,6 +6,7 @@ import { Search, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { toast } from "sonner";
+import MuseumImage3D from "@/components/MuseumImage3D";
 
 interface MuseumSearchResult {
   name: string;
@@ -113,11 +114,7 @@ export default function Museum() {
               <CardContent className="p-6">
                 {searchResult.imageData && (
                   <div className="mb-6 rounded-xl overflow-hidden shadow-lg">
-                    <img 
-                      src={searchResult.imageData} 
-                      alt={searchResult.name}
-                      className="w-full h-auto"
-                    />
+                    <MuseumImage3D imageUrl={searchResult.imageData} alt={searchResult.name} />
                   </div>
                 )}
 
