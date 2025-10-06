@@ -1,31 +1,78 @@
-import { Canvas } from "@react-three/fiber";
-import { OrbitControls, useTexture } from "@react-three/drei";
-import { Suspense } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { OrbitControls, useTexture, PerspectiveCamera } from "@react-three/drei";
+import { Suspense, useRef } from "react";
+import * as THREE from "three";
 
 function ImagePlane({ url }: { url: string }) {
   const texture = useTexture(url);
-  // Maintain a nice aspect ratio by scaling width based on texture
-  const width = 4;
-  const height = texture.image ? (4 * texture.image.height) / texture.image.width : 3;
+  const meshRef = useRef<THREE.Mesh>(null);
+  
+  // Add subtle floating animation
+  useFrame((state) => {
+    if (meshRef.current) {
+      meshRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.3) * 0.05;
+      meshRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.1;
+    }
+  });
+  
+  // Maintain aspect ratio based on texture
+  const width = 5;
+  const height = texture.image ? (5 * texture.image.height) / texture.image.width : 3.5;
+  
   return (
-    <mesh rotation={[0, 0, 0]}>
-      <planeGeometry args={[width, height, 1, 1]} />
-      <meshStandardMaterial map={texture} />
-    </mesh>
+    <group>
+      {/* Main image plane with depth */}
+      <mesh ref={meshRef} position={[0, 0, 0]} castShadow receiveShadow>
+        <boxGeometry args={[width, height, 0.1]} />
+        <meshStandardMaterial map={texture} roughness={0.3} metalness={0.1} />
+      </mesh>
+      
+      {/* Frame around the image */}
+      <mesh position={[0, 0, -0.06]}>
+        <boxGeometry args={[width + 0.3, height + 0.3, 0.05]} />
+        <meshStandardMaterial color="#1a1a1a" roughness={0.5} metalness={0.6} />
+      </mesh>
+    </group>
   );
 }
 
 export default function MuseumImage3D({ imageUrl, alt }: { imageUrl: string; alt?: string }) {
   return (
-    <div className="w-full h-[480px] rounded-xl overflow-hidden border border-border bg-muted/30">
-      <Canvas camera={{ position: [0, 0, 6], fov: 50 }}>
-        <ambientLight intensity={0.6} />
-        <directionalLight position={[5, 5, 5]} intensity={0.8} />
-        <directionalLight position={[-5, -2, -5]} intensity={0.4} />
+    <div className="w-full h-[600px] rounded-xl overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-background via-muted/30 to-background shadow-2xl">
+      <Canvas shadows>
+        <PerspectiveCamera makeDefault position={[0, 0, 8]} fov={45} />
+        
+        {/* Enhanced lighting for 3D depth */}
+        <ambientLight intensity={0.4} />
+        <directionalLight 
+          position={[10, 10, 5]} 
+          intensity={1.2} 
+          castShadow
+          shadow-mapSize-width={2048}
+          shadow-mapSize-height={2048}
+        />
+        <directionalLight position={[-5, 5, -5]} intensity={0.6} />
+        <spotLight position={[0, 10, 0]} intensity={0.5} angle={0.3} penumbra={1} castShadow />
+        
+        {/* Background gradient plane */}
+        <mesh position={[0, 0, -3]} receiveShadow>
+          <planeGeometry args={[20, 20]} />
+          <meshStandardMaterial color="#0a0a0a" roughness={0.8} />
+        </mesh>
+        
         <Suspense fallback={null}>
           <ImagePlane url={imageUrl} />
         </Suspense>
-        <OrbitControls enablePan={false} minDistance={4} maxDistance={10} />
+        
+        <OrbitControls 
+          enablePan={false} 
+          minDistance={5} 
+          maxDistance={15}
+          maxPolarAngle={Math.PI / 2}
+          minPolarAngle={Math.PI / 4}
+          enableDamping
+          dampingFactor={0.05}
+        />
       </Canvas>
       {/* Simple alt text for accessibility (visually hidden) */}
       <span className="sr-only">{alt}</span>

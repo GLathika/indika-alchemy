@@ -13,9 +13,9 @@ interface MuseumSearchResult {
   location: string;
   period: string;
   history: string;
+  collections: string;
   architecture: string;
-  deity?: string;
-  religion: string;
+  founder?: string;
   culturalSignificance: string;
   imageData?: string;
 }
@@ -68,14 +68,14 @@ export default function Museum() {
               Virtual Cultural Museum
             </h1>
             <p className="text-muted-foreground text-lg mb-6">
-              Search for museums, temples, monuments, and architectural wonders from all religions across India
+              Search for museums and cultural institutions across India
             </p>
             
             {/* Search Bar */}
             <form onSubmit={handleSearch} className="flex gap-3 max-w-2xl">
               <Input
                 type="text"
-                placeholder="Search for museums, temples, mosques, churches, monuments (e.g., National Museum, Taj Mahal, Ajanta Caves)..."
+                placeholder="Search for museums (e.g., National Museum Delhi, Indian Museum Kolkata, CSMVS Mumbai, Salar Jung Hyderabad)..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="flex-1 bg-background/80 backdrop-blur-sm"
@@ -105,9 +105,7 @@ export default function Museum() {
                 <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                   <div>Location: {searchResult.location}</div>
                   <div>•</div>
-                  <div>Period: {searchResult.period}</div>
-                  <div>•</div>
-                  <div>Religion: {searchResult.religion}</div>
+                  <div>Established: {searchResult.period}</div>
                 </div>
               </div>
 
@@ -127,17 +125,24 @@ export default function Museum() {
                   </div>
 
                   <div>
+                    <h3 className="font-semibold text-lg mb-2">Collections & Exhibits</h3>
+                    <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
+                      {searchResult.collections}
+                    </p>
+                  </div>
+
+                  <div>
                     <h3 className="font-semibold text-lg mb-2">Architecture</h3>
                     <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
                       {searchResult.architecture}
                     </p>
                   </div>
 
-                  {searchResult.deity && (
+                  {searchResult.founder && (
                     <div>
-                      <h3 className="font-semibold text-lg mb-2">Deity/Dedication</h3>
+                      <h3 className="font-semibold text-lg mb-2">Founder</h3>
                       <p className="text-muted-foreground leading-relaxed">
-                        {searchResult.deity}
+                        {searchResult.founder}
                       </p>
                     </div>
                   )}
@@ -157,24 +162,24 @@ export default function Museum() {
           {!searchResult && (
             <Card className="bg-gradient-to-br from-primary/5 to-secondary/5">
               <CardHeader>
-                <CardTitle>Discover India's Rich Heritage</CardTitle>
+                <CardTitle>Discover India's Museums</CardTitle>
                 <CardDescription>
-                  Search for any museum, temple, mosque, church, gurdwara, monastery, or monument from across India
+                  Search for museums and cultural institutions from across India
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground mb-4">
-                  Our AI-powered virtual museum can provide detailed 3D visualizations and information about:
+                  Our AI-powered virtual museum provides detailed 3D visualizations and information about:
                 </p>
                 <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li>• Museums (National Museum Delhi, Indian Museum Kolkata, CSMVS Mumbai, Salar Jung Hyderabad, etc.)</li>
-                  <li>• Hindu temples (Meenakshi, Kashi Vishwanath, Brihadeeswara, etc.)</li>
-                  <li>• Mosques (Jama Masjid, Mecca Masjid, etc.)</li>
-                  <li>• Churches (Basilica of Bom Jesus, St. Thomas Cathedral, etc.)</li>
-                  <li>• Sikh Gurdwaras (Golden Temple, Bangla Sahib, etc.)</li>
-                  <li>• Buddhist sites (Ajanta Caves, Sanchi Stupa, monasteries, etc.)</li>
-                  <li>• Jain temples (Dilwara, Ranakpur, Palitana, etc.)</li>
-                  <li>• Historical monuments (Taj Mahal, Qutub Minar, Red Fort, Victoria Memorial, etc.)</li>
+                  <li>• National Museum, New Delhi - India's largest museum with artifacts from ancient to modern times</li>
+                  <li>• Indian Museum, Kolkata - Oldest museum in India (established 1814)</li>
+                  <li>• Chhatrapati Shivaji Maharaj Vastu Sangrahalaya (CSMVS), Mumbai - Art, archaeology, and natural history</li>
+                  <li>• Salar Jung Museum, Hyderabad - One of the world's largest museums with global art collections</li>
+                  <li>• National Gallery of Modern Art (NGMA), Delhi, Mumbai, Bangalore - Modern and contemporary Indian art</li>
+                  <li>• Government Museum, Chennai - Bronze sculptures and South Indian art</li>
+                  <li>• Victoria Memorial Hall, Kolkata - British colonial history and art</li>
+                  <li>• Tribal Museums, Railway Museums, Science Museums, and many more...</li>
                 </ul>
               </CardContent>
             </Card>

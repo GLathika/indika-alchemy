@@ -28,55 +28,54 @@ serve(async (req) => {
 
     console.log('Searching for:', query);
 
-    // First, get information about the place or museum
-    const infoPrompt = `As a cultural historian and museum expert, provide detailed information about: "${query}".
+    // First, get information about the museum
+    const infoPrompt = `As a museum expert, provide detailed information about: "${query}".
 
-This can be ANY of the following from India:
+This should ONLY be a MUSEUM in India, including:
 
-MUSEUMS:
-- National Museum, Indian Museum, CSMVS Mumbai, Salar Jung Museum
-- National Gallery of Modern Art, Dr. Bhau Daji Lad Museum
-- Government Museum Chennai, Victoria Memorial Hall
-- Birla Industrial & Technological Museum
-- Tribal Museums, Railway Museums, Science Museums
-- Regional museums, art galleries, specialized collections
+MUSEUMS IN INDIA:
+- National Museum (New Delhi) - India's largest museum with artifacts from prehistoric to modern times
+- Indian Museum (Kolkata) - Oldest museum in India with rare collections
+- Chhatrapati Shivaji Maharaj Vastu Sangrahalaya / CSMVS (Mumbai) - Art, archaeology, natural history
+- Salar Jung Museum (Hyderabad) - One of the largest museums with global art collections
+- National Gallery of Modern Art / NGMA (Delhi, Mumbai, Bangalore) - Modern and contemporary Indian art
+- Dr. Bhau Daji Lad Museum (Mumbai) - Decorative arts and industrial arts
+- Government Museum (Chennai/Egmore Museum) - Bronze gallery, archaeological artifacts
+- Shankar's International Dolls Museum (Delhi) - Dolls from around the world
+- Victoria Memorial Hall (Kolkata) - British colonial history and art
+- Birla Industrial & Technological Museum (Kolkata) - Science and technology
+- Tribal Museums (Bhopal, Odisha, Chhattisgarh) - Indigenous cultures
+- Railway Museums (Delhi, Mysore) - Railway heritage
+- Regional museums, specialized museums, art galleries
+- State museums, archaeological museums, folk art museums
 
-RELIGIOUS SITES & MONUMENTS:
-- Hindu temples (ancient and modern)
-- Islamic mosques and monuments (Taj Mahal, Qutub Minar, etc.)
-- Christian churches and cathedrals
-- Sikh gurdwaras
-- Buddhist monasteries and stupas
-- Jain temples
-- Zoroastrian fire temples
-- Jewish synagogues
-- Archaeological sites and historical monuments
+If the query is NOT a museum in India, return: { "error": "This is not a museum in India. Please search for museums only." }
 
 Please provide:
 1. Full name and location in India
-2. Historical period/era (establishment year for museums, construction period for monuments)
-3. Detailed history (2-3 paragraphs about its origins, significance, and historical events)
-4. For Museums: Collections, exhibits, notable artifacts, and galleries
-5. For Monuments: Architectural style and features (describe the design, materials, unique elements)
-6. Cultural/religious/historical significance
-7. Associated deity/saint/dedication/founder (if applicable)
+2. Establishment year and historical period
+3. Detailed history (2-3 paragraphs about its origins, significance, and evolution)
+4. Collections and exhibits (describe major galleries, notable artifacts, and special collections)
+5. Architectural style of the building (if notable)
+6. Cultural and historical significance
+7. Founder or key benefactors
 8. Visiting information (timings, entry fees if known)
 
 Format the response as a JSON object with these exact fields:
 {
   "name": "Full name",
   "location": "City, State",
-  "period": "Construction/establishment period or year",
+  "period": "Establishment year",
   "history": "Detailed history text",
-  "architecture": "Architectural description OR museum collections/exhibits description",
+  "collections": "Description of collections, exhibits, and galleries",
+  "architecture": "Architectural description of the museum building",
   "culturalSignificance": "Cultural/historical significance",
-  "deity": "Deity/dedication/founder if applicable",
-  "religion": "Religion/faith (if applicable)",
-  "type": "Museum or Monument/Religious Site",
+  "founder": "Founder or key benefactors",
+  "type": "Museum",
   "imageDescription": "A detailed description for generating an image"
 }
 
-If this is not a recognized place in India, return: { "error": "Place not found or not in India" }`;
+If this is not a museum in India, return: { "error": "This is not a museum in India. Please search for museums only." }`;
 
     const infoResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -87,10 +86,10 @@ If this is not a recognized place in India, return: { "error": "Place not found 
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [
-          {
-            role: 'system',
-            content: 'You are an expert on Indian architecture, history, and religious sites across all faiths. You provide accurate, detailed information in JSON format.'
-          },
+      {
+        role: 'system',
+        content: 'You are an expert on Indian museums and cultural institutions. You provide accurate, detailed information ONLY about museums in India in JSON format. If asked about temples, monuments, or other non-museum sites, you return an error.'
+      },
           {
             role: 'user',
             content: infoPrompt
@@ -120,29 +119,18 @@ If this is not a recognized place in India, return: { "error": "Place not found 
 
     console.log('Generating image for:', placeInfo.name);
 
-    // Generate an image based on type
-    const isMuseum = placeInfo.type?.toLowerCase().includes('museum');
-    const imagePrompt = isMuseum 
-      ? `Create a detailed, photorealistic 3D visualization of ${placeInfo.name} in ${placeInfo.location}, India.
+    // Generate museum image
+    const imagePrompt = `Create a detailed, photorealistic 3D visualization of ${placeInfo.name} in ${placeInfo.location}, India.
 
 Capture the museum's essence with:
 - Exterior architecture and building design from ${placeInfo.period}
-- Museum facade and entrance
-- Beautiful lighting highlighting the building's features
+- Museum facade and entrance with clear architectural details
+- Beautiful natural lighting highlighting the building's features
 - Surrounding environment and landscape
 - Architectural style: ${placeInfo.architecture}
+- People visiting the museum to show scale and liveliness
 
-Style: Ultra high resolution, photorealistic architectural photography, cinematic lighting, wide angle view showing the museum building's grandeur.`
-      : `Create a detailed, photorealistic 3D architectural visualization of ${placeInfo.name} in ${placeInfo.location}, India. 
-    
-Capture the essence with:
-- Accurate architectural details from the ${placeInfo.period}
-- Traditional ${placeInfo.architecture}
-- Cultural, religious, and historical elements
-- Beautiful lighting to highlight the monument's grandeur
-- Surrounding environment typical of its location
-
-Style: Ultra high resolution, photorealistic architectural photography, cinematic lighting, wide angle view showing the full majesty of the structure.`;
+Style: Ultra high resolution, photorealistic architectural photography, golden hour lighting, wide angle view showing the museum building's grandeur and beauty.`;
 
     const imageResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
