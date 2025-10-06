@@ -35,7 +35,7 @@ export default function Architecture() {
     
     if (!searchQuery.trim()) {
       toast({
-        title: "Please enter a temple name",
+        title: "Please enter an architecture name",
         variant: "destructive",
       });
       return;
@@ -53,7 +53,7 @@ export default function Architecture() {
 
       if (data.error) {
         toast({
-          title: "Temple not found",
+          title: "Architecture not found",
           description: data.error,
           variant: "destructive",
         });
@@ -65,7 +65,7 @@ export default function Architecture() {
       console.error("Search error:", error);
       toast({
         title: "Search failed",
-        description: "Unable to search for temple. Please try again.",
+        description: "Unable to search for architecture. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -160,17 +160,17 @@ export default function Architecture() {
             }}
           >
             <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Traditional Architecture Insights
+              Architecture of India
             </h1>
             <p className="text-muted-foreground text-lg mb-6">
-              Discover ancient Indian architectural wisdom and its modern applications
+              Search for any architectural wonder from ancient to modern India - temples, forts, palaces, monuments, and more
             </p>
             
             {/* Search Bar */}
             <form onSubmit={handleSearch} className="flex gap-3 max-w-2xl">
               <Input
                 type="text"
-                placeholder="Search for any temple across India..."
+                placeholder="Search architecture (e.g., Taj Mahal, Konark Temple, Mehrangarh Fort, Victoria Memorial)..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="flex-1 bg-background/80 backdrop-blur-sm"

@@ -68,14 +68,14 @@ export default function Museum() {
               Virtual Cultural Museum
             </h1>
             <p className="text-muted-foreground text-lg mb-6">
-              Search for temples, monuments, and architectural wonders from all religions across India
+              Search for museums, temples, monuments, and architectural wonders from all religions across India
             </p>
             
             {/* Search Bar */}
             <form onSubmit={handleSearch} className="flex gap-3 max-w-2xl">
               <Input
                 type="text"
-                placeholder="Search for temples, mosques, churches, monuments (e.g., Taj Mahal, Golden Temple, Ajanta Caves)..."
+                placeholder="Search for museums, temples, mosques, churches, monuments (e.g., National Museum, Taj Mahal, Ajanta Caves)..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="flex-1 bg-background/80 backdrop-blur-sm"
@@ -159,21 +159,22 @@ export default function Museum() {
               <CardHeader>
                 <CardTitle>Discover India's Rich Heritage</CardTitle>
                 <CardDescription>
-                  Search for any temple, mosque, church, gurdwara, monastery, or monument from across India
+                  Search for any museum, temple, mosque, church, gurdwara, monastery, or monument from across India
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground mb-4">
-                  Our AI-powered museum can provide detailed information about:
+                  Our AI-powered virtual museum can provide detailed 3D visualizations and information about:
                 </p>
                 <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li>• Museums (National Museum Delhi, Indian Museum Kolkata, CSMVS Mumbai, Salar Jung Hyderabad, etc.)</li>
                   <li>• Hindu temples (Meenakshi, Kashi Vishwanath, Brihadeeswara, etc.)</li>
-                  <li>• Mosques (Jama Masjid, Mecca Masjid, Adhai Din Ka Jhonpra, etc.)</li>
+                  <li>• Mosques (Jama Masjid, Mecca Masjid, etc.)</li>
                   <li>• Churches (Basilica of Bom Jesus, St. Thomas Cathedral, etc.)</li>
                   <li>• Sikh Gurdwaras (Golden Temple, Bangla Sahib, etc.)</li>
-                  <li>• Buddhist monasteries (Hemis, Thiksey, Ajanta Caves, etc.)</li>
+                  <li>• Buddhist sites (Ajanta Caves, Sanchi Stupa, monasteries, etc.)</li>
                   <li>• Jain temples (Dilwara, Ranakpur, Palitana, etc.)</li>
-                  <li>• Historical monuments (Taj Mahal, Qutub Minar, Red Fort, etc.)</li>
+                  <li>• Historical monuments (Taj Mahal, Qutub Minar, Red Fort, Victoria Memorial, etc.)</li>
                 </ul>
               </CardContent>
             </Card>

@@ -25,19 +25,25 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const systemPrompt = `You are a knowledgeable Indian architecture and temple history expert. When given a temple name, provide detailed information in JSON format with the following structure:
+    const systemPrompt = `You are a knowledgeable Indian architecture and history expert. When given an architectural site, monument, or structure name, provide detailed information in JSON format with the following structure:
 {
-  "name": "Full official name of the temple",
+  "name": "Full official name",
   "location": "City, State",
   "period": "Time period or year built",
-  "history": "2-3 paragraphs of detailed historical information about the temple's significance, construction, and cultural importance",
-  "architecture": "Description of architectural style and unique features",
-  "deity": "Main deity or religious significance",
+  "history": "2-3 paragraphs of detailed historical information about its significance, construction, and cultural importance",
+  "architecture": "Description of architectural style (e.g., Nagara, Dravidian, Mughal, Indo-Saracenic, Vesara, etc.) and unique features",
+  "deity": "Main deity or religious significance OR ruler/founder (if applicable)",
   "features": ["feature1", "feature2", "feature3", "feature4"],
-  "timings": "Temple visiting hours if known"
+  "timings": "Visiting hours if known"
 }
 
-If the temple doesn't exist or you're not sure, respond with: {"error": "Temple not found. Please check the name and try again."}`;
+This can include ANY architectural site from India including:
+- Ancient: Indus Valley sites, Buddhist stupas/caves, Hindu temples (Nagara/Dravidian/Vesara styles), Jain temples
+- Medieval: Islamic/Indo-Islamic monuments, Mughal architecture, Rajput forts and palaces
+- Colonial: Portuguese churches, British Indo-Saracenic buildings, Gothic revival architecture
+- Modern: Contemporary temples, monuments like Statue of Unity, modern buildings
+
+If the site doesn't exist or you're not sure, respond with: {"error": "Architecture site not found. Please check the name and try again."}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -92,9 +98,9 @@ If the temple doesn't exist or you're not sure, respond with: {"error": "Temple 
       throw new Error("Invalid response format from AI");
     }
 
-    // Generate temple image
-    console.log("Generating temple image...");
-    const imagePrompt = `A high-quality, realistic photograph of ${templeInfo.name}, showing its architectural beauty and grandeur. The image should capture the temple's main structure, intricate details, and surrounding environment. Ultra high resolution, professional photography.`;
+    // Generate architecture image
+    console.log("Generating architecture image...");
+    const imagePrompt = `A high-quality, realistic photograph of ${templeInfo.name} in ${templeInfo.location}, India, showing its architectural beauty and grandeur. The image should capture the main structure, intricate architectural details, unique features, and surrounding environment. Style: ${templeInfo.architecture}. Ultra high resolution, professional architectural photography, cinematic lighting.`;
     
     const imageResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

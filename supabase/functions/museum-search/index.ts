@@ -28,12 +28,22 @@ serve(async (req) => {
 
     console.log('Searching for:', query);
 
-    // First, get information about the place
-    const infoPrompt = `As a cultural historian and architecture expert, provide detailed information about: "${query}".
+    // First, get information about the place or museum
+    const infoPrompt = `As a cultural historian and museum expert, provide detailed information about: "${query}".
 
-This can be ANY religious site, temple, mosque, church, gurdwara, monastery, monument, or architectural wonder from ANY religion in India, including:
+This can be ANY of the following from India:
+
+MUSEUMS:
+- National Museum, Indian Museum, CSMVS Mumbai, Salar Jung Museum
+- National Gallery of Modern Art, Dr. Bhau Daji Lad Museum
+- Government Museum Chennai, Victoria Memorial Hall
+- Birla Industrial & Technological Museum
+- Tribal Museums, Railway Museums, Science Museums
+- Regional museums, art galleries, specialized collections
+
+RELIGIOUS SITES & MONUMENTS:
 - Hindu temples (ancient and modern)
-- Islamic mosques and monuments (including Taj Mahal, Qutub Minar, etc.)
+- Islamic mosques and monuments (Taj Mahal, Qutub Minar, etc.)
 - Christian churches and cathedrals
 - Sikh gurdwaras
 - Buddhist monasteries and stupas
@@ -44,22 +54,25 @@ This can be ANY religious site, temple, mosque, church, gurdwara, monastery, mon
 
 Please provide:
 1. Full name and location in India
-2. Historical period/era of construction
+2. Historical period/era (establishment year for museums, construction period for monuments)
 3. Detailed history (2-3 paragraphs about its origins, significance, and historical events)
-4. Architectural style and features (describe the design, materials, unique elements)
-5. Religious/cultural significance
-6. Associated deity/saint/dedication (if applicable)
+4. For Museums: Collections, exhibits, notable artifacts, and galleries
+5. For Monuments: Architectural style and features (describe the design, materials, unique elements)
+6. Cultural/religious/historical significance
+7. Associated deity/saint/dedication/founder (if applicable)
+8. Visiting information (timings, entry fees if known)
 
 Format the response as a JSON object with these exact fields:
 {
   "name": "Full name",
   "location": "City, State",
-  "period": "Construction period",
+  "period": "Construction/establishment period or year",
   "history": "Detailed history text",
-  "architecture": "Architectural description",
-  "culturalSignificance": "Cultural significance",
-  "deity": "Deity/dedication if applicable",
-  "religion": "Religion/faith",
+  "architecture": "Architectural description OR museum collections/exhibits description",
+  "culturalSignificance": "Cultural/historical significance",
+  "deity": "Deity/dedication/founder if applicable",
+  "religion": "Religion/faith (if applicable)",
+  "type": "Museum or Monument/Religious Site",
   "imageDescription": "A detailed description for generating an image"
 }
 
@@ -107,13 +120,25 @@ If this is not a recognized place in India, return: { "error": "Place not found 
 
     console.log('Generating image for:', placeInfo.name);
 
-    // Generate an image
-    const imagePrompt = `Create a detailed, photorealistic 3D architectural visualization of ${placeInfo.name} in ${placeInfo.location}, India. 
+    // Generate an image based on type
+    const isMuseum = placeInfo.type?.toLowerCase().includes('museum');
+    const imagePrompt = isMuseum 
+      ? `Create a detailed, photorealistic 3D visualization of ${placeInfo.name} in ${placeInfo.location}, India.
+
+Capture the museum's essence with:
+- Exterior architecture and building design from ${placeInfo.period}
+- Museum facade and entrance
+- Beautiful lighting highlighting the building's features
+- Surrounding environment and landscape
+- Architectural style: ${placeInfo.architecture}
+
+Style: Ultra high resolution, photorealistic architectural photography, cinematic lighting, wide angle view showing the museum building's grandeur.`
+      : `Create a detailed, photorealistic 3D architectural visualization of ${placeInfo.name} in ${placeInfo.location}, India. 
     
-Capture the essence of this ${placeInfo.religion} site with:
+Capture the essence with:
 - Accurate architectural details from the ${placeInfo.period}
 - Traditional ${placeInfo.architecture}
-- Cultural and religious elements
+- Cultural, religious, and historical elements
 - Beautiful lighting to highlight the monument's grandeur
 - Surrounding environment typical of its location
 
