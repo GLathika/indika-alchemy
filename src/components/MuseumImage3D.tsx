@@ -7,10 +7,10 @@ function ImagePlane({ url }: { url: string }) {
   const texture = useTexture(url);
   const meshRef = useRef<THREE.Mesh>(null);
   
-  // Add subtle floating animation
+  // Add continuous rotation for obvious 3D effect
   useFrame((state) => {
     if (meshRef.current) {
-      meshRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.3) * 0.12;
+      meshRef.current.rotation.y += 0.005; // Continuous slow rotation
       meshRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.15;
     }
   });
@@ -18,19 +18,31 @@ function ImagePlane({ url }: { url: string }) {
   // Maintain aspect ratio based on texture
   const width = 5;
   const height = texture.image ? (5 * texture.image.height) / texture.image.width : 3.5;
+  const depth = 0.8; // Much thicker for obvious 3D effect
   
   return (
     <group>
-      {/* Main image plane with depth */}
+      {/* Main 3D box with image on front face */}
       <mesh ref={meshRef} position={[0, 0, 0]} castShadow receiveShadow>
-        <boxGeometry args={[width, height, 0.1]} />
-        <meshStandardMaterial map={texture} roughness={0.3} metalness={0.1} />
+        <boxGeometry args={[width, height, depth]} />
+        <meshStandardMaterial 
+          map={texture} 
+          roughness={0.3} 
+          metalness={0.1}
+          color="#ffffff"
+        />
       </mesh>
       
-      {/* Frame around the image */}
-      <mesh position={[0, 0, -0.06]}>
-        <boxGeometry args={[width + 0.3, height + 0.3, 0.05]} />
-        <meshStandardMaterial color="#1a1a1a" roughness={0.5} metalness={0.6} />
+      {/* Thick decorative frame */}
+      <mesh position={[0, 0, -(depth/2 + 0.15)]} castShadow>
+        <boxGeometry args={[width + 0.4, height + 0.4, 0.3]} />
+        <meshStandardMaterial color="#8B4513" roughness={0.4} metalness={0.7} />
+      </mesh>
+      
+      {/* Inner frame detail */}
+      <mesh position={[0, 0, -(depth/2 + 0.05)]} castShadow>
+        <boxGeometry args={[width + 0.25, height + 0.25, 0.1]} />
+        <meshStandardMaterial color="#D4AF37" roughness={0.2} metalness={0.9} />
       </mesh>
     </group>
   );
