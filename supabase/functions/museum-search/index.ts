@@ -131,34 +131,39 @@ If this is not a museum in India, return: { "error": "This is not a museum in In
     let imageUrl = null;
     
     try {
-      // Search Wikipedia for the museum
-      const wikiSearchUrl = `https://en.wikipedia.org/w/api.php?action=query&format=json&prop=pageimages|images&piprop=original&titles=${encodeURIComponent(placeInfo.name)}&origin=*`;
-      
+      // Prefer pageimages with a large thumbnail for reliable CORS/static host
+      const wikiSearchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(placeInfo.name)}&format=json&origin=*`;
       const wikiResponse = await fetch(wikiSearchUrl);
       const wikiData = await wikiResponse.json();
       
-      const pages = wikiData.query?.pages;
-      if (pages) {
-        const pageId = Object.keys(pages)[0];
-        const page = pages[pageId];
-        
-        // Get the main image
-        if (page.original?.source) {
-          imageUrl = page.original.source;
-          console.log('Found Wikipedia image:', imageUrl);
-        } else if (page.images && page.images.length > 0) {
-          // Get first image file info
-          const imageTitle = page.images[0].title;
-          const imageInfoUrl = `https://en.wikipedia.org/w/api.php?action=query&format=json&prop=imageinfo&iiprop=url&titles=${encodeURIComponent(imageTitle)}&origin=*`;
-          
-          const imageInfoResponse = await fetch(imageInfoUrl);
-          const imageInfoData = await imageInfoResponse.json();
-          
-          const imagePages = imageInfoData.query?.pages;
-          if (imagePages) {
-            const imagePageId = Object.keys(imagePages)[0];
-            imageUrl = imagePages[imagePageId].imageinfo?.[0]?.url;
-            console.log('Found Wikipedia image from file:', imageUrl);
+      const first = wikiData.query?.search?.[0];
+      if (first?.title) {
+        const pageImagesUrl = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(first.title)}&prop=pageimages&format=json&pithumbsize=1200&origin=*`;
+        const pageImagesRes = await fetch(pageImagesUrl);
+        const pageImagesData = await pageImagesRes.json();
+        const pages = pageImagesData.query?.pages;
+        if (pages) {
+          const pageId = Object.keys(pages)[0];
+          const thumb = pages[pageId]?.thumbnail?.source;
+          if (thumb) {
+            imageUrl = thumb; // Typically served from upload.wikimedia.org with proper CORS
+            console.log('Found Wikipedia thumbnail image:', imageUrl);
+          }
+        }
+      }
+
+      // Fallback: original image via pageimages|images if no thumb found
+      if (!imageUrl) {
+        const pageWithOriginalUrl = `https://en.wikipedia.org/w/api.php?action=query&format=json&prop=pageimages|images&piprop=original&titles=${encodeURIComponent(placeInfo.name)}&origin=*`;
+        const pageWithOriginalRes = await fetch(pageWithOriginalUrl);
+        const pageWithOriginal = await pageWithOriginalRes.json();
+        const pages2 = pageWithOriginal.query?.pages;
+        if (pages2) {
+          const pageId2 = Object.keys(pages2)[0];
+          const page2 = pages2[pageId2];
+          if (page2?.original?.source) {
+            imageUrl = page2.original.source;
+            console.log('Found Wikipedia original image:', imageUrl);
           }
         }
       }

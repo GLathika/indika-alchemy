@@ -1,10 +1,19 @@
-import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls, useTexture, PerspectiveCamera, ContactShadows } from "@react-three/drei";
+import { Canvas, useFrame, useLoader } from "@react-three/fiber";
+import { OrbitControls, PerspectiveCamera, ContactShadows } from "@react-three/drei";
 import { Suspense, useRef } from "react";
 import * as THREE from "three";
 
 function ImagePlane({ url }: { url: string }) {
-  const texture = useTexture(url);
+  const texture = useLoader(THREE.TextureLoader, url, (loader) => {
+    // Ensure cross-origin images from Wikimedia load correctly
+    // @ts-ignore
+    loader.crossOrigin = 'anonymous';
+  });
+  // Improve color and quality
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = 8;
+  texture.generateMipmaps = true;
+
   const meshRef = useRef<THREE.Mesh>(null);
   
   // Add continuous rotation for obvious 3D effect
@@ -26,10 +35,11 @@ function ImagePlane({ url }: { url: string }) {
       <mesh ref={meshRef} position={[0, 0, 0]} castShadow receiveShadow>
         <boxGeometry args={[width, height, depth]} />
         <meshStandardMaterial 
-          map={texture} 
-          roughness={0.3} 
+          map={texture}
+          roughness={0.3}
           metalness={0.1}
           color="#ffffff"
+          toneMapped
         />
       </mesh>
       
@@ -55,27 +65,27 @@ export default function MuseumImage3D({ imageUrl, alt }: { imageUrl: string; alt
         <PerspectiveCamera makeDefault position={[0, 0, 8]} fov={45} />
         
         {/* Enhanced lighting for 3D depth */}
-        <ambientLight intensity={0.4} />
+        <ambientLight intensity={0.6} />
         <directionalLight 
           position={[10, 10, 5]} 
-          intensity={1.2} 
+          intensity={1.6} 
           castShadow
           shadow-mapSize-width={2048}
           shadow-mapSize-height={2048}
         />
-        <directionalLight position={[-5, 5, -5]} intensity={0.6} />
-        <spotLight position={[0, 10, 0]} intensity={0.5} angle={0.3} penumbra={1} castShadow />
+        <directionalLight position={[-5, 5, -5]} intensity={0.9} />
+        <spotLight position={[0, 10, 5]} intensity={1.0} angle={0.35} penumbra={1} castShadow />
         
         {/* Background gradient plane */}
         <mesh position={[0, 0, -3]} receiveShadow>
           <planeGeometry args={[20, 20]} />
-          <meshStandardMaterial color="#0a0a0a" roughness={0.8} />
+          <meshStandardMaterial color={new THREE.Color('hsl(220, 15%, 8%)')} roughness={0.8} />
         </mesh>
 
         {/* Ground plane and contact shadows for depth */}
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -2, 0]} receiveShadow>
           <planeGeometry args={[30, 30]} />
-          <meshStandardMaterial color="#0a0a0a" roughness={0.9} />
+          <meshStandardMaterial color={new THREE.Color('hsl(220, 15%, 8%)')} roughness={0.9} />
         </mesh>
         <ContactShadows position={[0, -1.95, 0]} opacity={0.4} scale={20} blur={2.5} far={10} />
         
