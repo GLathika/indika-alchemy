@@ -125,58 +125,73 @@ If this is not a museum in India, return: { "error": "This is not a museum in In
       );
     }
 
-    console.log('Generating image for:', placeInfo.name);
+    console.log('Fetching real image for:', placeInfo.name);
 
-    // Generate museum image with a clear 3D-perspective render
-    const imagePrompt = `Create a highly realistic 3D-perspective architectural render of ${placeInfo.name} in ${placeInfo.location}, India.
-
-Include only the actual museum building and its authentic architectural details.
-
-Requirements:
-- Exterior facade and entrance captured from a three-quarter angle (3D perspective)
-- Style and materials consistent with the period: ${placeInfo.period}
-- Architectural style: ${placeInfo.architecture}
-- Subtle presence of visitors for scale (no crowds)
-- Natural lighting (late afternoon) to emphasize depth and shadows
-- Surrounding elements that truly exist at the site (avoid fictional features)
-- Signage consistent with the real museum when visible
-- Additional details to guide accuracy: ${placeInfo.imageDescription || 'Focus on the museum’s real-world appearance'}
-
-Constraints:
-- Do NOT invent futuristic elements or non-existent additions
-- Do NOT show interiors; show exterior building with depth and shadowing
-
-Output: Ultra high resolution, photorealistic, crisp, architectural visualization.`;
-
-    const imageResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-image-preview',
-        messages: [
-          {
-            role: 'user',
-            content: imagePrompt
+    // Try to fetch image from Wikipedia
+    let imageUrl = null;
+    
+    try {
+      // Search Wikipedia for the museum
+      const wikiSearchUrl = `https://en.wikipedia.org/w/api.php?action=query&format=json&prop=pageimages|images&piprop=original&titles=${encodeURIComponent(placeInfo.name)}&origin=*`;
+      
+      const wikiResponse = await fetch(wikiSearchUrl);
+      const wikiData = await wikiResponse.json();
+      
+      const pages = wikiData.query?.pages;
+      if (pages) {
+        const pageId = Object.keys(pages)[0];
+        const page = pages[pageId];
+        
+        // Get the main image
+        if (page.original?.source) {
+          imageUrl = page.original.source;
+          console.log('Found Wikipedia image:', imageUrl);
+        } else if (page.images && page.images.length > 0) {
+          // Get first image file info
+          const imageTitle = page.images[0].title;
+          const imageInfoUrl = `https://en.wikipedia.org/w/api.php?action=query&format=json&prop=imageinfo&iiprop=url&titles=${encodeURIComponent(imageTitle)}&origin=*`;
+          
+          const imageInfoResponse = await fetch(imageInfoUrl);
+          const imageInfoData = await imageInfoResponse.json();
+          
+          const imagePages = imageInfoData.query?.pages;
+          if (imagePages) {
+            const imagePageId = Object.keys(imagePages)[0];
+            imageUrl = imagePages[imagePageId].imageinfo?.[0]?.url;
+            console.log('Found Wikipedia image from file:', imageUrl);
           }
-        ],
-        modalities: ['image', 'text']
-      }),
-    });
-
-    if (!imageResponse.ok) {
-      console.error('Image generation error:', { status: imageResponse.status });
-      // Return info without image if image generation fails
-      return new Response(
-        JSON.stringify(placeInfo),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching Wikipedia image:', error);
     }
-
-    const imageData = await imageResponse.json();
-    const imageUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    
+    // If Wikipedia failed, try Wikimedia Commons
+    if (!imageUrl) {
+      try {
+        const commonsSearchUrl = `https://commons.wikimedia.org/w/api.php?action=query&format=json&list=search&srsearch=${encodeURIComponent(placeInfo.name + ' museum')}&srnamespace=6&srlimit=1&origin=*`;
+        
+        const commonsResponse = await fetch(commonsSearchUrl);
+        const commonsData = await commonsResponse.json();
+        
+        if (commonsData.query?.search?.length > 0) {
+          const imageTitle = commonsData.query.search[0].title;
+          const imageInfoUrl = `https://commons.wikimedia.org/w/api.php?action=query&format=json&prop=imageinfo&iiprop=url&titles=${encodeURIComponent(imageTitle)}&origin=*`;
+          
+          const imageInfoResponse = await fetch(imageInfoUrl);
+          const imageInfoData = await imageInfoResponse.json();
+          
+          const pages = imageInfoData.query?.pages;
+          if (pages) {
+            const pageId = Object.keys(pages)[0];
+            imageUrl = pages[pageId].imageinfo?.[0]?.url;
+            console.log('Found Wikimedia Commons image:', imageUrl);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching Wikimedia Commons image:', error);
+      }
+    }
 
     return new Response(
       JSON.stringify({
