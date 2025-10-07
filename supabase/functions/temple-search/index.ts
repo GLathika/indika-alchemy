@@ -98,33 +98,63 @@ If the site doesn't exist or you're not sure, respond with: {"error": "Architect
       throw new Error("Invalid response format from AI");
     }
 
-    // Generate architecture image
-    console.log("Generating architecture image...");
-    const imagePrompt = `A high-quality, realistic photograph of ${templeInfo.name} in ${templeInfo.location}, India, showing its architectural beauty and grandeur. The image should capture the main structure, intricate architectural details, unique features, and surrounding environment. Style: ${templeInfo.architecture}. Ultra high resolution, professional architectural photography, cinematic lighting.`;
-    
-    const imageResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image-preview",
-        messages: [
-          { role: "user", content: imagePrompt }
-        ],
-        modalities: ["image", "text"]
-      }),
-    });
-
-    if (!imageResponse.ok) {
-      console.error("Image generation failed:", imageResponse.status);
-      // Continue without image if generation fails
+    // Fetch real image from Wikipedia/Wikimedia
+    console.log("Fetching real image from Wikipedia...");
+    try {
+      // Search Wikipedia for the architecture site
+      const searchQuery = encodeURIComponent(templeInfo.name);
+      const wikiSearchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${searchQuery}&format=json&origin=*`;
+      
+      const searchResponse = await fetch(wikiSearchUrl);
+      const searchData = await searchResponse.json();
+      
+      if (searchData.query?.search?.length > 0) {
+        const pageTitle = searchData.query.search[0].title;
+        
+        // Get the main image from the page
+        const imageUrl = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(pageTitle)}&prop=pageimages&format=json&pithumbsize=1000&origin=*`;
+        const imageResponse = await fetch(imageUrl);
+        const imageData = await imageResponse.json();
+        
+        const pages = imageData.query?.pages;
+        const pageId = Object.keys(pages)[0];
+        const thumbnailUrl = pages[pageId]?.thumbnail?.source;
+        
+        if (thumbnailUrl) {
+          templeInfo.imageUrl = thumbnailUrl;
+          console.log("Successfully fetched image from Wikipedia");
+        } else {
+          // Try Wikimedia Commons search as fallback
+          const commonsSearchUrl = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${searchQuery}&format=json&origin=*&srnamespace=6`;
+          const commonsResponse = await fetch(commonsSearchUrl);
+          const commonsData = await commonsResponse.json();
+          
+          if (commonsData.query?.search?.length > 0) {
+            const fileName = commonsData.query.search[0].title;
+            const fileInfoUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(fileName)}&prop=imageinfo&iiprop=url&format=json&origin=*`;
+            const fileResponse = await fetch(fileInfoUrl);
+            const fileData = await fileResponse.json();
+            
+            const filePages = fileData.query?.pages;
+            const filePageId = Object.keys(filePages)[0];
+            const imageUrl = filePages[filePageId]?.imageinfo?.[0]?.url;
+            
+            if (imageUrl) {
+              templeInfo.imageUrl = imageUrl;
+              console.log("Successfully fetched image from Wikimedia Commons");
+            } else {
+              templeInfo.imageUrl = null;
+            }
+          } else {
+            templeInfo.imageUrl = null;
+          }
+        }
+      } else {
+        templeInfo.imageUrl = null;
+      }
+    } catch (imageError) {
+      console.error("Failed to fetch real image:", imageError);
       templeInfo.imageUrl = null;
-    } else {
-      const imageData = await imageResponse.json();
-      const generatedImageUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-      templeInfo.imageUrl = generatedImageUrl || null;
     }
 
     return new Response(
