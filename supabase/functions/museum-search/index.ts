@@ -117,20 +117,36 @@ If this is not a museum in India, return: { "error": "This is not a museum in In
       );
     }
 
+    // Enforce museum-only results
+    if ((placeInfo.type || '').toLowerCase() !== 'museum') {
+      return new Response(
+        JSON.stringify({ error: 'This is not a museum in India. Please search for museums only.' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     console.log('Generating image for:', placeInfo.name);
 
-    // Generate museum image
-    const imagePrompt = `Create a detailed, photorealistic 3D visualization of ${placeInfo.name} in ${placeInfo.location}, India.
+    // Generate museum image with a clear 3D-perspective render
+    const imagePrompt = `Create a highly realistic 3D-perspective architectural render of ${placeInfo.name} in ${placeInfo.location}, India.
 
-Capture the museum's essence with:
-- Exterior architecture and building design from ${placeInfo.period}
-- Museum facade and entrance with clear architectural details
-- Beautiful natural lighting highlighting the building's features
-- Surrounding environment and landscape
+Include only the actual museum building and its authentic architectural details.
+
+Requirements:
+- Exterior facade and entrance captured from a three-quarter angle (3D perspective)
+- Style and materials consistent with the period: ${placeInfo.period}
 - Architectural style: ${placeInfo.architecture}
-- People visiting the museum to show scale and liveliness
+- Subtle presence of visitors for scale (no crowds)
+- Natural lighting (late afternoon) to emphasize depth and shadows
+- Surrounding elements that truly exist at the site (avoid fictional features)
+- Signage consistent with the real museum when visible
+- Additional details to guide accuracy: ${placeInfo.imageDescription || 'Focus on the museum’s real-world appearance'}
 
-Style: Ultra high resolution, photorealistic architectural photography, golden hour lighting, wide angle view showing the museum building's grandeur and beauty.`;
+Constraints:
+- Do NOT invent futuristic elements or non-existent additions
+- Do NOT show interiors; show exterior building with depth and shadowing
+
+Output: Ultra high resolution, photorealistic, crisp, architectural visualization.`;
 
     const imageResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',

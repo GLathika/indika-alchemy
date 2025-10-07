@@ -1,5 +1,5 @@
 import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls, useTexture, PerspectiveCamera } from "@react-three/drei";
+import { OrbitControls, useTexture, PerspectiveCamera, ContactShadows } from "@react-three/drei";
 import { Suspense, useRef } from "react";
 import * as THREE from "three";
 
@@ -10,8 +10,8 @@ function ImagePlane({ url }: { url: string }) {
   // Add subtle floating animation
   useFrame((state) => {
     if (meshRef.current) {
-      meshRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.3) * 0.05;
-      meshRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.1;
+      meshRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.3) * 0.12;
+      meshRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.15;
     }
   });
   
@@ -59,6 +59,13 @@ export default function MuseumImage3D({ imageUrl, alt }: { imageUrl: string; alt
           <planeGeometry args={[20, 20]} />
           <meshStandardMaterial color="#0a0a0a" roughness={0.8} />
         </mesh>
+
+        {/* Ground plane and contact shadows for depth */}
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -2, 0]} receiveShadow>
+          <planeGeometry args={[30, 30]} />
+          <meshStandardMaterial color="#0a0a0a" roughness={0.9} />
+        </mesh>
+        <ContactShadows position={[0, -1.95, 0]} opacity={0.4} scale={20} blur={2.5} far={10} />
         
         <Suspense fallback={null}>
           <ImagePlane url={imageUrl} />
