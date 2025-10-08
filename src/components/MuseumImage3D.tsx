@@ -32,28 +32,30 @@ function ImagePlane({ url }: { url: string }) {
   return (
     <group>
       {/* Main 3D box with image on front face */}
-      <mesh ref={meshRef} position={[0, 0, 0]} castShadow receiveShadow>
-        <boxGeometry args={[width, height, depth]} />
-        <meshStandardMaterial 
-          map={texture}
-          roughness={0.3}
-          metalness={0.1}
-          color="#ffffff"
-          toneMapped
-        />
-      </mesh>
-      
-      {/* Thick decorative frame */}
-      <mesh position={[0, 0, -(depth/2 + 0.15)]} castShadow>
-        <boxGeometry args={[width + 0.4, height + 0.4, 0.3]} />
-        <meshStandardMaterial color="#8B4513" roughness={0.4} metalness={0.7} />
-      </mesh>
-      
-      {/* Inner frame detail */}
-      <mesh position={[0, 0, -(depth/2 + 0.05)]} castShadow>
-        <boxGeometry args={[width + 0.25, height + 0.25, 0.1]} />
-        <meshStandardMaterial color="#D4AF37" roughness={0.2} metalness={0.9} />
-      </mesh>
+        <mesh ref={meshRef} position={[0, 0, 0]} castShadow receiveShadow>
+          {/* Use a plane for the image so it looks like a mounted artwork */}
+          <planeGeometry args={[width, height]} />
+          <meshStandardMaterial 
+            map={texture}
+            roughness={0.35}
+            metalness={0.05}
+            color="#ffffff"
+            toneMapped
+            side={THREE.FrontSide}
+          />
+        </mesh>
+        
+        {/* Decorative frame behind the image for real 3D depth */}
+        <mesh position={[0, 0, -0.25]} castShadow>
+          <boxGeometry args={[width + 0.4, height + 0.4, 0.4]} />
+          <meshStandardMaterial color="#8B4513" roughness={0.45} metalness={0.6} />
+        </mesh>
+        
+        {/* Inner frame detail */}
+        <mesh position={[0, 0, -0.15]} castShadow>
+          <boxGeometry args={[width + 0.25, height + 0.25, 0.2]} />
+          <meshStandardMaterial color="#D4AF37" roughness={0.25} metalness={0.85} />
+        </mesh>
     </group>
   );
 }

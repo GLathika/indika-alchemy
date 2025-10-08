@@ -106,8 +106,51 @@ If this is not a recognized festival in India, return: { "error": "Festival not 
       );
     }
 
+    // Fetch a real image from Wikipedia/Wikimedia based on the festival name
+    let imageUrl: string | null = null;
+    try {
+      const q = encodeURIComponent(`${festivalInfo.name} festival`);
+      const wikiSearchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${q}&format=json&origin=*`;
+      const wikiRes = await fetch(wikiSearchUrl);
+      const wikiData = await wikiRes.json();
+      const first = wikiData.query?.search?.[0];
+      if (first?.title) {
+        const pageImagesUrl = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(first.title)}&prop=pageimages&format=json&pithumbsize=1200&origin=*`;
+        const pageImagesRes = await fetch(pageImagesUrl);
+        const pageImagesData = await pageImagesRes.json();
+        const pages = pageImagesData.query?.pages;
+        if (pages) {
+          const pageId = Object.keys(pages)[0];
+          imageUrl = pages[pageId]?.thumbnail?.source ?? null;
+        }
+      }
+
+      // Fallback to Wikimedia Commons if needed
+      if (!imageUrl) {
+        const commonsSearchUrl = `https://commons.wikimedia.org/w/api.php?action=query&format=json&list=search&srsearch=${q}&srnamespace=6&srlimit=1&origin=*`;
+        const commonsRes = await fetch(commonsSearchUrl);
+        const commonsData = await commonsRes.json();
+        if (commonsData.query?.search?.[0]?.title) {
+          const imageTitle = commonsData.query.search[0].title;
+          const imageInfoUrl = `https://commons.wikimedia.org/w/api.php?action=query&format=json&prop=imageinfo&iiprop=url&titles=${encodeURIComponent(imageTitle)}&origin=*`;
+          const imageInfoRes = await fetch(imageInfoUrl);
+          const imageInfoData = await imageInfoRes.json();
+          const pages2 = imageInfoData.query?.pages;
+          if (pages2) {
+            const pid = Object.keys(pages2)[0];
+            imageUrl = pages2[pid]?.imageinfo?.[0]?.url ?? null;
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Festival image fetch error:', e);
+      imageUrl = null;
+    }
+
+    const result = { ...festivalInfo, imageUrl };
+
     return new Response(
-      JSON.stringify(festivalInfo),
+      JSON.stringify(result),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {

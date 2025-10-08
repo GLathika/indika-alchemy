@@ -17,6 +17,7 @@ interface FestivalResult {
   howToCelebrate: string;
   traditions: string[];
   specialFoods?: string;
+  imageUrl?: string;
 }
 
 export default function Festivals() {
@@ -114,6 +115,17 @@ export default function Festivals() {
                   <div>Time: {searchResult.timeOfYear}</div>
                 </div>
               </div>
+
+              {searchResult.imageUrl && (
+                <div className="aspect-[21/9] overflow-hidden">
+                  <img
+                    src={searchResult.imageUrl}
+                    alt={`${searchResult.name} festival`}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                </div>
+              )}
 
               <CardContent className="p-6 space-y-6">
                 <div>
